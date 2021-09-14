@@ -3,6 +3,7 @@ using Microsoft.Office.Interop.Excel;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -49,7 +50,8 @@ namespace TogglReport.ConsoleApp.Infrastructure {
             _logger.Information("Excel process started...");
 
             var xlRange = worksheet.UsedRange;
-
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             await WriteHeadersAsync(xlRange);
             WriteGeneralInformation(generalInfo, xlRange);
             await WriteDataInTable(detailedReport);
@@ -58,7 +60,8 @@ namespace TogglReport.ConsoleApp.Infrastructure {
 
             worksheet.Columns.AutoFit();
             xlWorkbook.SaveAs2(_filePathToSave);
-            _logger.Information("Excel file created");
+            stopWatch.Stop();
+            _logger.Information($"Excel file created. Time for creation '{stopWatch.Elapsed.TotalSeconds.ToString("0.00")}' seconds");
         }
 
         private void WriteGeneralInformation(GeneralProjectInformationDto generalProjectInformation, Excel.Range xlRange) {
@@ -172,7 +175,7 @@ namespace TogglReport.ConsoleApp.Infrastructure {
                 xlRange.Cells[startRow, 5].Value2 = ExcelTemplateHeaders.TotalTime;
                 _excelHelper.SetStyleForHeaders(xlRange, worksheet, startRow: startRow, startColumn: 1, endColumn: 5);
 
-                var projectsGroup = detailedReport.Data.OrderBy(x => x.Start).GroupBy(x => x.Description).ToList();
+                var projectsGroup = Utils.GetProjectsGroupedByDescription(detailedReport);
                 foreach (var report in projectsGroup) {
                     startRow++;
                     var totalMiliseconds = report.Sum(x => x.Dur);
