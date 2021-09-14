@@ -7,15 +7,13 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace TogglReport.ConsoleApp.Tools {
     public class ExcelHelper {
-        private readonly _Worksheet _worksheet;
         private readonly Workbook _xlWorkbook;
 
-        public ExcelHelper(_Worksheet worksheet, Workbook xlWorkbook) {
-            _worksheet = worksheet;
+        public ExcelHelper(Workbook xlWorkbook) {
             _xlWorkbook = xlWorkbook;
         }
 
-        public void SetTitleStyleForTableTitle(Excel.Range xlRange, string title, int startRow, int startColumn, int? endRow = null, int? endColumn = null) {
+        public void SetTitleStyleForTableTitle(Excel.Range xlRange, _Worksheet worksheet, string title, int startRow, int startColumn, int? endRow = null, int? endColumn = null) {
             if (string.IsNullOrEmpty(title)) {
                 throw new ArgumentException($"'{nameof(title)}' cannot be null or empty.", nameof(title));
             }
@@ -23,29 +21,29 @@ namespace TogglReport.ConsoleApp.Tools {
             endRow = endRow == null ? startRow : endRow;
             endColumn = endColumn == null ? startColumn : endColumn;
 
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Value = title;
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style.HorizontalAlignment = XlHAlign.xlHAlignCenter;
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style = _xlWorkbook.Styles[BuiltInCellStyleName.Accent2Pct20];
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Merge();
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Value = title;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style = _xlWorkbook.Styles[BuiltInCellStyleName.Accent2Pct20];
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Merge();
         }
 
-        public void SetStyleForHeaders(Excel.Range xlRange, int startRow, int startColumn, int? endRow = null, int? endColumn = null) {
+        public void SetStyleForHeaders(Excel.Range xlRange, _Worksheet worksheet, int startRow, int startColumn, int? endRow = null, int? endColumn = null) {
             endRow = endRow == null ? startRow : endRow;
             endColumn = endColumn == null ? startColumn : endColumn;
 
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style = _xlWorkbook.Styles[BuiltInCellStyleName.Accent2Pct40];
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style = _xlWorkbook.Styles[BuiltInCellStyleName.Accent2Pct40];
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style.HorizontalAlignment = XlHAlign.xlHAlignCenter;
         }
 
-        public void SetStyleForTableData(Excel.Range xlRange, int startRow, int startColumn, int? endRow = null, int? endColumn = null) {
+        public void SetStyleForTableData(Excel.Range xlRange, _Worksheet worksheet, int startRow, int startColumn, int? endRow = null, int? endColumn = null) {
             endRow = endRow == null ? startRow : endRow;
             endColumn = endColumn == null ? startColumn : endColumn;
 
             var style = _xlWorkbook.Styles[BuiltInCellStyleName.Currency0];
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Borders.LineStyle = XlLineStyle.xlContinuous;
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Borders.Weight = XlBorderWeight.xlThin;
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style = style;
-            _worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].HorizontalAlignment = XlHAlign.xlHAlignLeft;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Borders.LineStyle = XlLineStyle.xlContinuous;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Borders.Weight = XlBorderWeight.xlThin;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].Style = style;
+            worksheet.Range[xlRange.Cells[startRow, startColumn], xlRange.Cells[endRow, endColumn]].HorizontalAlignment = XlHAlign.xlHAlignLeft;
         }
 
         public string ConvertTagsToString(List<string> tags) {
@@ -60,8 +58,8 @@ namespace TogglReport.ConsoleApp.Tools {
             return stringBuilder.ToString();
         }
 
-        public void CreatePieChart(int leftMargin, int topMargin, Excel.Range range, string chartTitle) {
-            var chartOgjs = (ChartObjects)_worksheet.ChartObjects();
+        public void CreatePieChart(int leftMargin, int topMargin, Excel.Range range, _Worksheet worksheet, string chartTitle) {
+            var chartOgjs = (ChartObjects)worksheet.ChartObjects();
             var chartObj = chartOgjs.Add(leftMargin, topMargin, 400, 300);
             Chart xlChart = chartObj.Chart;
             xlChart.ChartType = XlChartType.xlPie;

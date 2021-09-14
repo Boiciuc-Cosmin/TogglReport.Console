@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TogglReport.ConsoleApp": {
+      "commandName": "Project",
+      "commandLineArgs": "-f C:\\Users\\cosmin\\Desktop\\test -s 08/01/2021 -u 08/21/2021 -o excel -a e1068110f8dc1c37b020175003a3eb50"
+    }
+  }
+}

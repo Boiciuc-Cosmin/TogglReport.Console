@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CommandLine;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -7,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using TogglReport.ConsoleApp.Controller;
 using TogglReport.ConsoleApp.Dtos;
+using TogglReport.ConsoleApp.Dtos.Options;
 using TogglReport.ConsoleApp.Infrastructure;
 using TogglReport.ConsoleApp.Repository;
 
@@ -31,19 +33,34 @@ namespace TogglReport.ConsoleApp {
                     services.AddTransient<ITogglRepository, TogglRepository>();
                     services.AddTransient<ITogglController, TogglController>();
                     services.AddTransient<IFileWriterHandler, FileWriterHandler>();
+                    services.AddTransient<IApplication, Application>();
                     services.AddSingleton(Log.Logger);
                     services.Configure<ApiOptions>(configurationRoot.GetSection("ConnectionStrings"));
+                    services.Configure<ApiTokensOptions>(configurationRoot.GetSection("ApiTokens"));
                 })
                 .UseSerilog()
                 .Build();
 
+            var application = host.Services.GetService<IApplication>();
 
-            var togglController = host.Services.GetService<ITogglController>();
-            var fileWriterHandler = host.Services.GetService<IFileWriterHandler>();
+            await Parser.Default.ParseArguments<CommandOptions>(args)
+                                .WithParsedAsync(async (opt) => await GetSelectedOptionsAsync(opt, application));
 
-            var application = new Application(togglController, fileWriterHandler, Log.Logger);
+            Log.Logger.Information("Application closing");
+        }
+
+        static async Task GetSelectedOptionsAsync(CommandOptions options, IApplication application) {
+            var argumentOptions = new ArgumentOptionsModel() {
+                FilePath = options.FilePath,
+                OutputType = options.OutputType,
+                PeriodOfTime = options.PeriodOfTime,
+                Since = options.Since,
+                Until = options.Until,
+                ApiToken = options.ApiToken
+            };
+
             try {
-                await application.RunAsync(@"D:\Personal_Projects\ToyApps\TogglReport.Console\bin\Debug\net5.0\file.xlsx");
+                await application.RunAsync(argumentOptions);
             }
             catch (Exception ex) {
                 Log.Logger.Error(ex.Message);

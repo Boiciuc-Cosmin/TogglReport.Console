@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TogglReport.ConsoleApp", "TogglReport.ConsoleApp.csproj", "{851245B4-DA0E-480D-869F-EA3D93CA6978}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TogglReport.Test", "..\TogglReport.Test\TogglReport.Test.csproj", "{7298B5CE-059D-4A84-8B5D-6EAEA024ED76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TogglReport.ConsoleApp", "TogglReport.ConsoleApp.csproj", "{851245B4-DA0E-480D-869F-EA3D93CA6978}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +15,6 @@ Global
 		{851245B4-DA0E-480D-869F-EA3D93CA6978}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{851245B4-DA0E-480D-869F-EA3D93CA6978}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{851245B4-DA0E-480D-869F-EA3D93CA6978}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7298B5CE-059D-4A84-8B5D-6EAEA024ED76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7298B5CE-059D-4A84-8B5D-6EAEA024ED76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7298B5CE-059D-4A84-8B5D-6EAEA024ED76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7298B5CE-059D-4A84-8B5D-6EAEA024ED76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

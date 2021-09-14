@@ -9,9 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using TogglReport.ConsoleApp.Dtos;
+using TogglReport.ConsoleApp.Dtos.Options;
 
 namespace TogglReport.ConsoleApp.Repository {
     public class TogglRepository : ITogglRepository {
+        private const string DateFormat = "yyyy-MM-dd";
+        private const string ApiPassword = "api_token";
+        private const string AuthenticationScheme = "Basic";
+        private const string UserAgent = "toyApp";
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger _logger;
         private readonly IOptionsMonitor<ApiOptions> _apiOptions;
@@ -25,7 +30,7 @@ namespace TogglReport.ConsoleApp.Repository {
         public async Task<List<WorkspaceDto>> GetWorkspaces(string apiToken) {
             var apiPath = "api/v8/workspaces";
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiOptions.CurrentValue.ApiUrl}/{apiPath}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{apiToken}:api_token")));
+            request.Headers.Authorization = new AuthenticationHeaderValue(AuthenticationScheme, Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{apiToken}:{ApiPassword}")));
 
             using (var client = _httpClientFactory.CreateClient()) {
                 try {
@@ -45,19 +50,19 @@ namespace TogglReport.ConsoleApp.Repository {
             var uriBuilder = new UriBuilder($"{_apiOptions.CurrentValue.ApiUrl}/{apiPath}");
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
 
-            query["user_agent"] = "cosma";
+            query["user_agent"] = UserAgent;
             query["workspace_id"] = workspaceId.ToString();
-            query["since"] = since.ToString("yyyy-MM-dd");
-            query["until"] = until.ToString("yyyy-MM-dd");
+            query["since"] = since.ToString(DateFormat);
+            query["until"] = until.ToString(DateFormat);
             uriBuilder.Query = query.ToString();
 
             var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.ToString());
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{apiToken}:api_token")));
+            request.Headers.Authorization = new AuthenticationHeaderValue(AuthenticationScheme, Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{apiToken}:{ApiPassword}")));
 
             using (var client = _httpClientFactory.CreateClient()) {
                 var response = await client.SendAsync(request);
-                var resp0onseAsString = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DetailedReportDto>(resp0onseAsString);
+                var responseAsString = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<DetailedReportDto>(responseAsString);
             }
         }
     }
