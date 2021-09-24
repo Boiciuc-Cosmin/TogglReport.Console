@@ -1,5 +1,4 @@
 ﻿using Serilog;
-using System;
 using System.Threading.Tasks;
 using TogglReport.ConsoleApp.Dtos;
 
@@ -17,8 +16,9 @@ namespace TogglReport.ConsoleApp.Infrastructure {
             }
         }
 
-        public async Task WriteToPdfFileAsync() {
-            throw new NotImplementedException();
+        public async Task WriteToPdfFileAsync(DetailedReportDto detailedReport, GeneralProjectInformationDto generalInfo) {
+            var pdfWriter = new PdfWriter();
+            await pdfWriter.WritePdfFileAsync(detailedReport, generalInfo);
         }
     }
 }

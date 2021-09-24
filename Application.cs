@@ -49,8 +49,8 @@ namespace TogglReport.ConsoleApp {
             try {
                 if (argumentOptions.OutputType.Equals(ExcelSelection, StringComparison.CurrentCultureIgnoreCase)) {
                     await _fileWriterHandler.WriteToExcelFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
-                }else if (argumentOptions.OutputType.Equals(PdfSelection, StringComparison.CurrentCultureIgnoreCase)) {
-                    await _fileWriterHandler.WriteToPdfFileAsync();
+                } else if (argumentOptions.OutputType.Equals(PdfSelection, StringComparison.CurrentCultureIgnoreCase)) {
+                    await _fileWriterHandler.WriteToPdfFileAsync(detailedReport, generalInfo);
                 } else {
                     _logger.Information("We couldn't get the output type. Default output is Excel.");
                     await _fileWriterHandler.WriteToExcelFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
