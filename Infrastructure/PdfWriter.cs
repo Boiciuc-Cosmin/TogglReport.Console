@@ -25,8 +25,10 @@ namespace TogglReport.ConsoleApp.Infrastructure {
 
         public async Task WritePdfFileAsync(DetailedReportDto detailedReport, GeneralProjectInformationDto generalInfo) {
             _stringBuilder.AppendLine("<body>");
-            _stringBuilder.AppendLine("<div class='container' style='margin-top: 100px;'>");
-            GenerateGraphs(detailedReport.Data);
+            _stringBuilder.AppendLine("<div class='container'>");
+            WriteGeneralInformation(generalInfo);
+            GenerateBarGraphGroupedByDate(detailedReport.Data);
+            GeneratePieGraphGroupedByProject(detailedReport.Data);
             WriteInformationGroupedByProject(detailedReport.Data);
             _stringBuilder.AppendLine("</div>");
             _stringBuilder.AppendLine("</body></html>");
@@ -42,9 +44,44 @@ namespace TogglReport.ConsoleApp.Infrastructure {
             doc.Close();
         }
 
-        private void GenerateGraphs(List<ProjectData> projectDatas) {
-            var projectsGroup = projectDatas.OrderBy(x => x.Start).GroupBy(x => x.Start.Value.ToString("yyyy MM dd")).ToList();
-            _stringBuilder.AppendLine("<div class='row'><div id='chart_div'>test</div></div>");
+        private void WriteGeneralInformation(GeneralProjectInformationDto generalInfo) {
+            var totalTimeSpan = TimeSpan.FromMilliseconds(generalInfo.TotalTime);
+            _stringBuilder.AppendLine(@$"<div class='row'>
+                                        <h2>Summary Report -> {generalInfo.User}</h2><br>
+                                        <span style='text-align: left; color: grey; margin-top:0px; font-size:20;'>{generalInfo.SinceDateTime.ToString("MM/dd/yyyy")} - {generalInfo.UntilDateTime.ToString("MM/dd/yyyy")}</span><br>
+                                        <b style='text-align: left; color: grey'; margin-top:3px;>TOTAL HOURS: {(int)totalTimeSpan.TotalHours}:{totalTimeSpan.Minutes}:{totalTimeSpan.Seconds}</b>
+                                        </div>");
+        }
+
+        private void GeneratePieGraphGroupedByProject(List<ProjectData> projectDatas) {
+            var projectsGroup = projectDatas.GroupBy(x => new { x.Project, Tag = String.Join(" ", x.Tags) }).ToList();
+            _stringBuilder.AppendLine("<div class='row'><div id='piechart' ></div></div>");
+            _stringBuilder.AppendLine(@"<script type='text/javascript'> google.charts.load('current', { 'packages': ['corechart'] });
+                                    google.charts.setOnLoadCallback(drawChart);
+                                        function drawChart() {
+                                            var data = google.visualization.arrayToDataTable([");
+            _stringBuilder.AppendLine("['Project', 'Total time'],");
+            foreach (var project in projectsGroup) {
+                long totalMiliseconds = project.Sum(x => x.Dur);
+                var projectDuration = TimeSpan.FromMilliseconds(totalMiliseconds);
+                _stringBuilder.AppendLine($"['{project.Key.Project} {project.Key.Tag} -> {(int)projectDuration.TotalHours}:{projectDuration.Minutes}:{projectDuration.Seconds}', {projectDuration.TotalHours}],");
+            }
+            _stringBuilder.AppendLine(@"]);
+             var options = { 
+                    legend: {alignment:'center', position:'right', maxLines: 1, textStyle:{fontSize: 15}},
+                    chartArea: {left: 0, width: 600, height:250},   
+                    height: 300, width: 600
+               };
+
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            chart.draw(data, options);
+            }");
+            _stringBuilder.AppendLine("</script>");
+        }
+
+        private void GenerateBarGraphGroupedByDate(List<ProjectData> projectDatas) {
+            var projectsGroup = projectDatas.OrderBy(x => x.Start).GroupBy(x => x.Start.Value.ToString("ddd \\\\nMM/dd")).ToList();
+            _stringBuilder.AppendLine("<div class='row' style='margin-left: -150px;'><div id='chart_div'>test</div></div>");
             _stringBuilder.AppendLine(@"<script type='text/javascript'> google.charts.load('current', { 'packages': ['bar'] });
                                     google.charts.setOnLoadCallback(drawChart);
                                         function drawChart() {
@@ -56,7 +93,7 @@ namespace TogglReport.ConsoleApp.Infrastructure {
                 _stringBuilder.AppendLine($"['{day.Key}', {projectDuration.TotalHours}],");
             }
             _stringBuilder.AppendLine(@"]);
-             var options = { 'title': 'My Average Day', 'width': 850, 'height': 500, legend: { position: 'none' },
+             var options = { 'width': 1250, 'height': 300, legend: { position: 'none' },
                     vAxis: {
                     gridlines: {count: 9},
                     minValue: 0,
@@ -65,13 +102,13 @@ namespace TogglReport.ConsoleApp.Infrastructure {
                     hAxis: {
                         gridlines:{ minSpacing:20},
                         showTextEvery:1,
-                        slantedText: true
+                        slantedText: false,
                    }
                };
 
             var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
-        }");
+            chart.draw(data, options);
+            }");
             _stringBuilder.AppendLine("</script>");
         }
 
