@@ -16,8 +16,8 @@ namespace TogglReport.ConsoleApp.Infrastructure {
             }
         }
 
-        public async Task WriteToPdfFileAsync(DetailedReportDto detailedReport, GeneralProjectInformationDto generalInfo) {
-            var pdfWriter = new PdfWriter();
+        public async Task WriteToPdfFileAsync(DetailedReportDto detailedReport, GeneralProjectInformationDto generalInfo, string filePathToSave) {
+            var pdfWriter = new PdfWriter(_logger, filePathToSave);
             await pdfWriter.WritePdfFileAsync(detailedReport, generalInfo);
         }
     }

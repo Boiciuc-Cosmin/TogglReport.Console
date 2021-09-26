@@ -16,7 +16,9 @@ namespace TogglReport.ConsoleApp.Infrastructure {
     public class ExcelWriter : IDisposable {
         private const string TimeFormat = "h:mm:ss";
         private const string GeneralInfoSheetName = "General Information";
-        private const string DefaultFileName = "excelFile.xlsx";
+        private const string ExcelExtension = ".xlsx";
+        private const string DateTimeFormat = "MM.dd.yyyy_HH-mm";
+        private readonly string DefaultFileName = $"Excel_Report({DateTime.Now.ToString(DateTimeFormat)}){ExcelExtension}";
         private readonly Excel.Application xlApp;
         private readonly Workbook xlWorkbook;
         private readonly _Worksheet worksheet;
@@ -25,7 +27,7 @@ namespace TogglReport.ConsoleApp.Infrastructure {
         private readonly ExcelHelper _excelHelper;
 
         public ExcelWriter(ILogger logger, string filePathToSave) {
-            if (HasFileNameWithExtension(filePathToSave)) {
+            if (Utils.HasFileNameWithExtension(filePathToSave, ExcelExtension)) {
                 _filePathToSave = filePathToSave;
             } else {
                 _filePathToSave = Path.Combine(filePathToSave, DefaultFileName);
@@ -34,6 +36,7 @@ namespace TogglReport.ConsoleApp.Infrastructure {
             xlApp = new Excel.Application {
                 DisplayAlerts = false
             };
+
             xlWorkbook = xlApp.Workbooks.Add();
             xlWorkbook.Sheets.Add();
             worksheet = (_Worksheet)xlWorkbook.Sheets[1];
@@ -194,10 +197,6 @@ namespace TogglReport.ConsoleApp.Infrastructure {
 
         private bool IsGeneralInformationValid(GeneralProjectInformationDto generalProjectInformation) {
             return generalProjectInformation != null && !string.IsNullOrEmpty(generalProjectInformation.User);
-        }
-
-        private bool HasFileNameWithExtension(string path) {
-            return !string.IsNullOrEmpty(path) && Path.HasExtension(path) && Path.GetExtension(path).Equals(".xlsx");
         }
 
         public void Dispose() {

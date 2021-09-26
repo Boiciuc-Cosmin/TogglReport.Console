@@ -1,16 +1,31 @@
 ﻿using SelectPdf;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TogglReport.ConsoleApp.Dtos;
+using TogglReport.ConsoleApp.Tools;
 
 namespace TogglReport.ConsoleApp.Infrastructure {
     public class PdfWriter {
+        private const string PdfExtension = ".pdf";
         private readonly StringBuilder _stringBuilder;
+        private const string DateTimeFormat = "MM.dd.yyyy_HH-mm";
+        private readonly string DefaultFileName = $"PDF_Report({DateTime.Now.ToString(DateTimeFormat)}){PdfExtension}";
+        private readonly string _filePathToSave;
+        private readonly ILogger _logger;
 
-        public PdfWriter() {
+        public PdfWriter(ILogger logger, string filePath) {
+            if (Utils.HasFileNameWithExtension(filePath, PdfExtension)) {
+                _filePathToSave = filePath;
+            } else {
+                _filePathToSave = Path.Combine(filePath, DefaultFileName);
+            }
+
             _stringBuilder = new StringBuilder(@"<html>
                     <head>
                         <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css'>
@@ -21,30 +36,35 @@ namespace TogglReport.ConsoleApp.Infrastructure {
                             google.charts.load('current', {'packages':['corechart']});
                         </script>
                         </head>");
+            _logger = logger;
         }
 
         public async Task WritePdfFileAsync(DetailedReportDto detailedReport, GeneralProjectInformationDto generalInfo) {
-            _stringBuilder.AppendLine("<body>");
-            _stringBuilder.AppendLine("<div class='container'>");
-            WriteGeneralInformation(generalInfo);
-            GenerateBarGraphGroupedByDate(detailedReport.Data);
-            GeneratePieGraphGroupedByProject(detailedReport.Data);
-            WriteInformationGroupedByProject(detailedReport.Data);
-            _stringBuilder.AppendLine("</div>");
-            _stringBuilder.AppendLine("</body></html>");
+            _logger.Information("PDF process started.");
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            await Task.Run(() => {
+                _stringBuilder.AppendLine("<body>");
+                _stringBuilder.AppendLine("<div class='container'>");
+                WriteGeneralInformation(generalInfo);
+                GenerateBarGraphGroupedByDate(detailedReport.Data);
+                GeneratePieGraphGroupedByProject(detailedReport.Data);
+                WriteInformationGroupedByProject(detailedReport.Data);
+                _stringBuilder.AppendLine("</div>");
+                _stringBuilder.AppendLine("</body></html>");
+            });
 
             HtmlToPdf converter = new HtmlToPdf();
-            // create a new pdf document converting an url
             PdfDocument doc = converter.ConvertHtmlString(_stringBuilder.ToString());
 
-            // save pdf document
-            doc.Save("Sample.pdf");
-
-            // close pdf document
+            doc.Save(_filePathToSave);
+            stopWatch.Stop();
+            _logger.Information($"Pdf file created. Time for creation '{stopWatch.Elapsed.TotalSeconds.ToString("0.00")}' seconds");
             doc.Close();
         }
 
         private void WriteGeneralInformation(GeneralProjectInformationDto generalInfo) {
+            _logger.Information("PDF: Writing general information.");
             var totalTimeSpan = TimeSpan.FromMilliseconds(generalInfo.TotalTime);
             _stringBuilder.AppendLine(@$"<div class='row'>
                                         <h2>Summary Report -> {generalInfo.User}</h2><br>
@@ -54,6 +74,7 @@ namespace TogglReport.ConsoleApp.Infrastructure {
         }
 
         private void GeneratePieGraphGroupedByProject(List<ProjectData> projectDatas) {
+            _logger.Information("PDF: Generating the graphs.");
             var projectsGroup = projectDatas.GroupBy(x => new { x.Project, Tag = String.Join(" ", x.Tags) }).ToList();
             _stringBuilder.AppendLine("<div class='row'><div id='piechart' ></div></div>");
             _stringBuilder.AppendLine(@"<script type='text/javascript'> google.charts.load('current', { 'packages': ['corechart'] });
@@ -113,6 +134,7 @@ namespace TogglReport.ConsoleApp.Infrastructure {
         }
 
         private void WriteInformationGroupedByProject(List<ProjectData> projectDatas) {
+            _logger.Information("PDF: Writing all data entries.");
             var projectsGroup = projectDatas.GroupBy(x => x.Project).ToList();
             _stringBuilder.AppendLine("<div class='row'> <div class='col-sm-10'><div style='color:grey; font-weight: normal; margin: 10px 0px 5px -12px'>PROJECT - TIME ENTRY</div></div><div class='col-sm-2'><div style='color:grey; font-weight: normal; text-align:right; margin: 10px 10px 5px 0px'>DURATION</div></div></div>");
             _stringBuilder.AppendLine("<div class='row'> <div class='panel-group'>");

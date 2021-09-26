@@ -6,5 +6,6 @@
         public string Until { get; set; }
         public string OutputType { get; set; }
         public string ApiToken { get; set; }
+        public string Workspace { get; set; }
     }
 }

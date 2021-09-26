@@ -14,10 +14,13 @@ namespace TogglReport.ConsoleApp.Dtos.Options {
         [Option('u', "until", Required = false, HelpText = "Set until date time MM/dd/yyy")]
         public string Until { get; set; }
 
-        [Option('o', "outputType", Required = false, HelpText = "Select output type (excel, pdf)")]
+        [Option('o', "outputType", Required = false, HelpText = "Select output type (excel, pdf, both)")]
         public string OutputType { get; set; }
 
         [Option('a', "apiToken", Required = true, HelpText = "Set api token (cosmin, marius) or insert api token")]
         public string ApiToken { get; set; }
+
+        [Option('w', "workspace", Required = false, HelpText = "Set workspace -> Optional")]
+        public string Workspace { get; set; }
     }
 }

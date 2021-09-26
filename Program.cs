@@ -56,7 +56,8 @@ namespace TogglReport.ConsoleApp {
                 PeriodOfTime = options.PeriodOfTime,
                 Since = options.Since,
                 Until = options.Until,
-                ApiToken = options.ApiToken
+                ApiToken = options.ApiToken,
+                Workspace = options.Workspace
             };
 
             try {

@@ -13,6 +13,7 @@ namespace TogglReport.ConsoleApp {
     public class Application : IApplication {
         private const string ExcelSelection = "excel";
         private const string PdfSelection = "pdf";
+        private const string BothSelection = "both";
         private readonly ITogglController _togglController;
         private readonly IFileWriterHandler _fileWriterHandler;
         private readonly ILogger _logger;
@@ -32,7 +33,7 @@ namespace TogglReport.ConsoleApp {
 
             var timeInterval = GetTimeInterval(argumentOptions.PeriodOfTime, argumentOptions.Since, argumentOptions.Until);
             var apiToken = GetApiToken(argumentOptions.ApiToken);
-            var workspaceId = await SelectWorkspaceId(apiToken);
+            var workspaceId = await SelectWorkspaceId(apiToken, argumentOptions.Workspace);
 
             var detailedReport = await _togglController.GetDetailsByMonth(apiToken, workspaceId, timeInterval.Since, timeInterval.Until);
 
@@ -50,7 +51,10 @@ namespace TogglReport.ConsoleApp {
                 if (argumentOptions.OutputType.Equals(ExcelSelection, StringComparison.CurrentCultureIgnoreCase)) {
                     await _fileWriterHandler.WriteToExcelFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
                 } else if (argumentOptions.OutputType.Equals(PdfSelection, StringComparison.CurrentCultureIgnoreCase)) {
-                    await _fileWriterHandler.WriteToPdfFileAsync(detailedReport, generalInfo);
+                    await _fileWriterHandler.WriteToPdfFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
+                } else if (argumentOptions.OutputType.Equals(BothSelection, StringComparison.CurrentCultureIgnoreCase)) {
+                    await _fileWriterHandler.WriteToExcelFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
+                    await _fileWriterHandler.WriteToPdfFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
                 } else {
                     _logger.Information("We couldn't get the output type. Default output is Excel.");
                     await _fileWriterHandler.WriteToExcelFileAsync(detailedReport, generalInfo, argumentOptions.FilePath);
@@ -95,9 +99,17 @@ namespace TogglReport.ConsoleApp {
             }
         }
 
-        private async Task<int> SelectWorkspaceId(string apiToken) {
+        private async Task<int> SelectWorkspaceId(string apiToken, string inputWorkspace) {
             var listOfWorkspaces = await _togglController.GetWorkspaces(apiToken);
-            Console.WriteLine("Select workspace from the list");
+            if (!string.IsNullOrEmpty(inputWorkspace)) {
+                var workspace = listOfWorkspaces.FirstOrDefault(x => x.Name.Equals(inputWorkspace, StringComparison.CurrentCultureIgnoreCase));
+                if (workspace != null && !string.IsNullOrEmpty(workspace.Name)) {
+                    return workspace.Id;
+                }
+                Console.WriteLine("We couldn't find the workspace.");
+            }
+
+            Console.WriteLine("Select workspace from the list.");
 
             foreach (var workspace in listOfWorkspaces) {
                 Console.WriteLine($"\t-> {workspace.Name}");

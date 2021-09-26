@@ -2,7 +2,7 @@
   "profiles": {
     "TogglReport.ConsoleApp": {
       "commandName": "Project",
-      "commandLineArgs": "-f C:\\Users\\cosmin\\Desktop\\test -t this_month -o pdf -a cosmin"
+      "commandLineArgs": "-f D:\\report -t this_month -o both -a cosmin -w slashdev"
     }
   }
 }
